@@ -52,7 +52,7 @@ public class OrderController {
             return Collections.singletonList("main customer not available");
         }
 
-        int numberOfCustomers= friendEmails.size()+1;
+        
         // Create a compound order
         CompoundOrder compoundOrder = new CompoundOrder();
         boolean allFriendsAvailable = true;
