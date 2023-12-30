@@ -9,16 +9,19 @@ public class NotificationService implements NotificationSubject {
     String mainState;
     @Override
     public void attach(NotificationObserver observer) {
-        
+        observers.add(observer);
     }
 
     @Override
     public void detach(NotificationObserver observer) {
-
+        observers.remove(observer);
     }
 
     @Override
     public void notifyObservers(String notification) {
-
+        for(NotificationObserver observer:observers)
+        {
+            observer.update(notification);
+        }
     }
 }

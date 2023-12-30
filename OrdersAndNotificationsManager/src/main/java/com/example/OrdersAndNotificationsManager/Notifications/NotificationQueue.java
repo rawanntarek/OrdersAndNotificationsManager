@@ -1,2 +1,5 @@
-package com.example.OrdersAndNotificationsManager.Notifications;public class NotificationQueue {
+package com.example.OrdersAndNotificationsManager.Notifications;
+
+public class NotificationQueue {
+
 }
