@@ -16,8 +16,6 @@ public class SimpleOrder implements Order  {
     private double shippingFee;
     private OrderStatus status;
 
-
-
     public enum OrderStatus {
         PLACED,
         CONFIRMED,
@@ -30,6 +28,10 @@ public class SimpleOrder implements Order  {
         this.products = new ArrayList<>();
         this.shippingFee = 50.0;
         this.status = OrderStatus.PLACED;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
     }
 
     @Override
@@ -53,20 +55,42 @@ public class SimpleOrder implements Order  {
         }
 
         double total = calculateTotal();
-        if (customer.getBalance() >= total + shippingFee) {
-            customer.setBalance(customer.getBalance() - total - shippingFee);
+        if (customer.getBalance() >= total) {
+            customer.setBalance(customer.getBalance() - total);
             status = OrderStatus.CONFIRMED;
-            if (status != OrderStatus.SHIPPED) {
-                status = OrderStatus.CONFIRMED;
-            }
-            return "---" + status + "---  Purchased products: " + String.join(",", addedProducts) +
-                    ". Total Deducted Amount: " + total + ". Shipping fee: " + shippingFee;
+            String confirmationStatus = "---CONFIRMED---";
 
+            if (status == OrderStatus.CONFIRMED) {
+                String shippingConfirmationResult = confirmShipping();
+                if (status == OrderStatus.SHIPPED) {
+                    confirmationStatus = "---SHIPPED---";
+                }
+                return "---PLACED---" + ". Total Deducted Amount: " + total + " \n" +
+                        confirmationStatus + " Purchased products: " + String.join(",", addedProducts) +
+                        ". Total Deducted Amount: " + total + " \n" + shippingConfirmationResult;
+            } else {
+                return "Order placed but confirmation failed";
+            }
         } else {
             return "Not enough balance";
         }
     }
 
+    // Method to confirm shipping
+    public String confirmShipping() {
+        if (status == OrderStatus.CONFIRMED) {
+            double totalWithShipping = calculateTotal() + shippingFee;
+            if (customer.getBalance() >= totalWithShipping) {
+                customer.setBalance(customer.getBalance() - shippingFee);
+                status = OrderStatus.SHIPPED;
+                return "Order has been shipped. Total Amount with Shipping: " + totalWithShipping;
+            } else {
+                return "Not enough balance to cover shipping fees";
+            }
+        } else {
+            return "Order has not been confirmed yet";
+        }
+    }
 
     public double calculateTotal() {
         double total = 0.0;
@@ -87,8 +111,4 @@ public class SimpleOrder implements Order  {
         return orderDetails + totalAmountShipping ;
     }
 
-
-    public OrderStatus getStatus() {
-        return status;
-    }
 }
