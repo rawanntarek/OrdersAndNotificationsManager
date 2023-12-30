@@ -13,6 +13,15 @@ public class SimpleOrder implements Order  {
     private Customer customer;
     private List<Products> products;
     private List<NotificationObserver> notificationObservers = new ArrayList<>();
+
+    public double getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(double shippingFee) {
+        this.shippingFee = shippingFee;
+    }
+
     private double shippingFee;
     private OrderStatus status;
 
@@ -65,9 +74,8 @@ public class SimpleOrder implements Order  {
                 if (status == OrderStatus.SHIPPED) {
                     confirmationStatus = "---SHIPPED---";
                 }
-                return "---PLACED---" + ". Total Deducted Amount: " + total + " \n" +
-                        confirmationStatus + " Purchased products: " + String.join(",", addedProducts) +
-                        ". Total Deducted Amount: " + total + " \n" + shippingConfirmationResult;
+                return "---Confirmed---" +" Purchased products: " + String.join(",", addedProducts) +  ".  Total Deducted Amount: " + total + " \n" +
+                        confirmationStatus + shippingConfirmationResult;
             } else {
                 return "Order placed but confirmation failed";
             }
