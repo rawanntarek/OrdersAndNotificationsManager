@@ -1,60 +1,104 @@
 package com.example.OrdersAndNotificationsManager.Orders;
 
 import com.example.OrdersAndNotificationsManager.Customers.Customer;
-import com.example.OrdersAndNotificationsManager.Notifications.MessageTemplate;
+import com.example.OrdersAndNotificationsManager.Notifications.NotificationObserver;
+import com.example.OrdersAndNotificationsManager.Notifications.NotificationSubject;
 import com.example.OrdersAndNotificationsManager.Products.DummyProductList;
 import com.example.OrdersAndNotificationsManager.Products.Products;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SimpleOrder implements Order {
+public class SimpleOrder implements Order  {
     private Customer customer;
     private List<Products> products;
-    private double shippingFee;
+    private List<NotificationObserver> notificationObservers = new ArrayList<>();
 
+    public double getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(double shippingFee) {
+        this.shippingFee = shippingFee;
+    }
+
+    private double shippingFee;
+    private OrderStatus status;
+
+    public enum OrderStatus {
+        PLACED,
+        CONFIRMED,
+        SHIPPED
+    }
 
     // Constructor
     public SimpleOrder(Customer customer) {
         this.customer = customer;
         this.products = new ArrayList<>();
         this.shippingFee = 50.0;
+        this.status = OrderStatus.PLACED;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
     }
 
     @Override
     public String placeorder(List<String> ProductName) {
-        List<Products> productss = DummyProductList.getDummyProducts();
-        List<String> addedproducts = new ArrayList<>();
+        List<Products> availableProducts = DummyProductList.getDummyProducts();
+        List<String> addedProducts = new ArrayList<>();
+
         for (String productName : ProductName) {
             boolean productFound = false;
-            for (Products p : productss) {
+            for (Products p : availableProducts) {
                 if (p.getName().equals(productName)) {
                     products.add(p);
-                    addedproducts.add(productName);
+                    addedProducts.add(productName);
                     productFound = true;
                     break;
-
-
                 }
-
             }
             if (!productFound) {
-                return "Product not available:" + productName;
+                return "Product not available: " + productName;
             }
-
         }
+
         double total = calculateTotal();
         if (customer.getBalance() >= total) {
-            customer.setBalance(customer.getBalance() - total - shippingFee);
+            customer.setBalance(customer.getBalance() - total);
+            status = OrderStatus.CONFIRMED;
+            String confirmationStatus = "---CONFIRMED---";
 
-            return "Purchased products: "+String.join(",", addedproducts) +
-                    "Total Deducted Amount: " + total + "  shipping fee " + shippingFee ;
+            if (status == OrderStatus.CONFIRMED) {
+                String shippingConfirmationResult = confirmShipping();
+                if (status == OrderStatus.SHIPPED) {
+                    confirmationStatus = "---SHIPPED---";
+                }
+                return "---Confirmed---" +" Purchased products: " + String.join(",", addedProducts) +  ".  Total Deducted Amount: " + total + " \n" +
+                        confirmationStatus + shippingConfirmationResult;
+            } else {
+                return "Order placed but confirmation failed";
+            }
         } else {
-            return "No enough balance";
+            return "Not enough balance";
         }
     }
 
-
+    // Method to confirm shipping
+    public String confirmShipping() {
+        if (status == OrderStatus.CONFIRMED) {
+            double totalWithShipping = calculateTotal() + shippingFee;
+            if (customer.getBalance() >= totalWithShipping) {
+                customer.setBalance(customer.getBalance() - shippingFee);
+                status = OrderStatus.SHIPPED;
+                return "Order has been shipped. Total Amount with Shipping: " + totalWithShipping;
+            } else {
+                return "Not enough balance to cover shipping fees";
+            }
+        } else {
+            return "Order has not been confirmed yet";
+        }
+    }
 
     public double calculateTotal() {
         double total = 0.0;
@@ -65,23 +109,14 @@ public class SimpleOrder implements Order {
     }
 
     public String getOrderDetails() {
-        String orderDetails = "Simple Order: " + customer.getEmail() + ", Products:";
+        String orderDetails = "Simple Order: " + customer.getEmail() + ", Products: ";
 
         for (int i = 0; i < products.size(); i++) {
             orderDetails += " Product: " + products.get(i).getName() + ", Price: " + products.get(i).getPrice() + " & ";
         }
 
-        String totalamount_shipping="Total amount: "+calculateTotal()+" ,Shipping fee: "+shippingFee;
-        return orderDetails+totalamount_shipping;
+        String totalAmountShipping = "Total amount: " + calculateTotal() + ", Shipping fee: " + shippingFee;
+        return orderDetails + totalAmountShipping ;
     }
-    public String generateConfirmationMessage() {
-        List<String> addedProducts = new ArrayList<>();
-        for (Products product : products) {
-            addedProducts.add(product.getName());
-        }
-
-        return MessageTemplate.generateConfirmationMessage(customer.getEmail(), addedProducts);
-    }
-
 
 }
