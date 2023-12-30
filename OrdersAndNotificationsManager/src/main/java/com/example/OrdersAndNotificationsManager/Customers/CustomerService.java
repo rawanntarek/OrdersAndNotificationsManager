@@ -26,6 +26,14 @@ public class CustomerService {
         }
         return null;
     }
+    public Customer getCustomerByphoneNum(String phoneNum) {
+        for (Customer customer : customerList) {
+            if (customer.getPhoneNum().equals(phoneNum)) {
+                return customer;
+            }
+        }
+        return null;
+    }
 
     // Method to update the balance of a customer
     public Customer updateBalance(String email, double balance) {

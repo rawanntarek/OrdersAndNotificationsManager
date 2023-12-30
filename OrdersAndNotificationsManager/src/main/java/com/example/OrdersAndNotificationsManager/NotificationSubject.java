@@ -1,4 +1,4 @@
-package com.example.OrdersAndNotificationsManager.Notifications;
+package com.example.OrdersAndNotificationsManager;
 
 public interface NotificationSubject {
     void attach(NotificationObserver observer);
