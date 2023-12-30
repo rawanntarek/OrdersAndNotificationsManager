@@ -2,6 +2,8 @@ package com.example.OrdersAndNotificationsManager.Orders;
 
 import com.example.OrdersAndNotificationsManager.Customers.Customer;
 import com.example.OrdersAndNotificationsManager.Customers.CustomerService;
+import com.example.OrdersAndNotificationsManager.Notifications.EmailLNotificationObserver;
+import com.example.OrdersAndNotificationsManager.Notifications.SMSNotificationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,13 +15,17 @@ public class OrderController {
 
     private final OrderService orderService;
     private final CustomerService customerService;
+    private final EmailLNotificationObserver emailObserver ;
+    private final SMSNotificationObserver smsObserver ;
 
 
     @Autowired
-    public OrderController(OrderService orderService, CustomerService customerService) {
+    public OrderController(OrderService orderService, CustomerService customerService, SMSNotificationObserver smsObserver, EmailLNotificationObserver emailObserver) {
         this.orderService = orderService;
         this.customerService = customerService;
        // Register NotificationService as an observer
+        this.smsObserver = smsObserver;
+        this.emailObserver = emailObserver;
     }
 
     // API endpoint to place a simple order
@@ -31,6 +37,8 @@ public class OrderController {
             return "email not available";
         }
         SimpleOrder simpleOrder = new SimpleOrder(customer);
+
+        simpleOrder.attachObservers(smsObserver, emailObserver);
         customer.addSimpleOrder(simpleOrder);
         String result= orderService.placeOrder(simpleOrder, productNames);
 
@@ -52,7 +60,7 @@ public class OrderController {
             return Collections.singletonList("main customer not available");
         }
 
-
+        int numberOfCustomers= friendEmails.size()+1;
         // Create a compound order
         CompoundOrder compoundOrder = new CompoundOrder();
         boolean allFriendsAvailable = true;
@@ -83,13 +91,6 @@ public class OrderController {
 
         if(allFriendsAvailable) {
 
-
-
-            SimpleOrder mainCustomerOrder = new SimpleOrder(mainCustomer);
-            String mainCustomerResult = orderService.placeOrder(mainCustomerOrder, customerProductNames);
-            compoundOrder.addSimpleOrder(mainCustomerOrder);
-            results.add("Main Customer: " + mainCustomerResult);
-
             for(int i=0;i<friendEmails.size();i++)
             {
                 List<String> friendProductList = friendProductNames.get(i);
@@ -102,6 +103,11 @@ public class OrderController {
                 results.add("Friend " + friendEmail + ": " + friendResult);
             }
 
+
+            SimpleOrder mainCustomerOrder = new SimpleOrder(mainCustomer);
+            String mainCustomerResult = orderService.placeOrder(mainCustomerOrder, customerProductNames);
+            compoundOrder.addSimpleOrder(mainCustomerOrder);
+            results.add("Main Customer: " + mainCustomerResult);
 
             List<String> finalProducts = new ArrayList<>();
 
