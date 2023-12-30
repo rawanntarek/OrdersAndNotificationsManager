@@ -1,18 +1,16 @@
 package com.example.OrdersAndNotificationsManager.Orders;
 
 import com.example.OrdersAndNotificationsManager.Customers.Customer;
-import com.example.OrdersAndNotificationsManager.Notifications.*;
 import com.example.OrdersAndNotificationsManager.Products.DummyProductList;
 import com.example.OrdersAndNotificationsManager.Products.Products;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SimpleOrder implements Order, NotificationSubject {
+public class SimpleOrder implements Order {
     private Customer customer;
     private List<Products> products;
     private double shippingFee;
-    private List<NotificationObserver> observers;
 
 
     // Constructor
@@ -20,8 +18,7 @@ public class SimpleOrder implements Order, NotificationSubject {
         this.customer = customer;
         this.products = new ArrayList<>();
         this.shippingFee = 50.0;
-        this.observers = new ArrayList<>();
-           }
+    }
 
     @Override
     public String placeorder(List<String> ProductName) {
@@ -48,7 +45,7 @@ public class SimpleOrder implements Order, NotificationSubject {
         double total = calculateTotal();
         if (customer.getBalance() >= total) {
             customer.setBalance(customer.getBalance() - total - shippingFee);
-            generateConfirmationMessage();
+
             return "Purchased products: "+String.join(",", addedproducts) +
                     "Total Deducted Amount: " + total + "  shipping fee " + shippingFee ;
         } else {
@@ -76,37 +73,12 @@ public class SimpleOrder implements Order, NotificationSubject {
         String totalamount_shipping="Total amount: "+calculateTotal()+" ,Shipping fee: "+shippingFee;
         return orderDetails+totalamount_shipping;
     }
-    public String generateConfirmationMessage() {
-        List<String> addedProducts = new ArrayList<>();
+    public List<String> getProductName() {
+        List<String> productNames = new ArrayList<>();
         for (Products product : products) {
-            addedProducts.add(product.getName());
+            productNames.add(product.getName());
         }
-
-        String message= MessageTemplate.generateConfirmationMessage(customer.getEmail(), addedProducts);
-        notifyObservers(message);
-
-        return message;
-    }
-
-
-    @Override
-    public void attach(NotificationObserver observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void detach(NotificationObserver observer) {
-        observers.remove(observer);
-    }
-    public void attachObservers( SMSNotificationObserver smsObserver, EmailLNotificationObserver emailObserver) {
-        this.attach(smsObserver); // Attach SMS observer
-        this.attach(emailObserver); // Attach Email observer
-    }
-    @Override
-    public void notifyObservers(String notification) {
-        for (NotificationObserver observer : observers) {
-            observer.update(notification);
-        }
+        return productNames;
     }
 
 
