@@ -2,13 +2,11 @@ package com.example.OrdersAndNotificationsManager.Orders;
 
 import com.example.OrdersAndNotificationsManager.Customers.Customer;
 import com.example.OrdersAndNotificationsManager.Customers.CustomerService;
+import com.example.OrdersAndNotificationsManager.Notifications.NotificationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -17,10 +15,12 @@ public class OrderController {
     private final OrderService orderService;
     private final CustomerService customerService;
 
+
     @Autowired
     public OrderController(OrderService orderService, CustomerService customerService) {
         this.orderService = orderService;
         this.customerService = customerService;
+       // Register NotificationService as an observer
     }
 
     // API endpoint to place a simple order
@@ -33,11 +33,12 @@ public class OrderController {
         }
         SimpleOrder simpleOrder = new SimpleOrder(customer);
         customer.addSimpleOrder(simpleOrder);
-        return orderService.placeOrder(simpleOrder, productNames);
+        String result= orderService.placeOrder(simpleOrder, productNames);
+
+        return result;
     }
 
-
-    // API endpoint to place a compound order
+// API endpoint to place a compound order
     @PostMapping("/compound")
     public List<String> placeCompoundOrder(
             @RequestParam String customerEmail,
