@@ -20,6 +20,7 @@ public class OrderController {
     public OrderController(OrderService orderService, CustomerService customerService) {
         this.orderService = orderService;
         this.customerService = customerService;
+       // Register NotificationService as an observer
     }
 
     // API endpoint to place a simple order
@@ -30,22 +31,14 @@ public class OrderController {
         if (customer == null) {
             return "email not available";
         }
-
-        // Create a new SimpleOrder for the customer
         SimpleOrder simpleOrder = new SimpleOrder(customer);
-        String result = orderService.placeOrder(simpleOrder, productNames);
-
-        // Check if the order was confirmed
-        if (result.contains("CONFIRMED")) {
-            // Update the customer with the order
-            customer.addSimpleOrder(simpleOrder);
-        }
+        customer.addSimpleOrder(simpleOrder);
+        String result= orderService.placeOrder(simpleOrder, productNames);
 
         return result;
     }
 
-
-    // API endpoint to place a compound order
+// API endpoint to place a compound order
     @PostMapping("/compound")
     public List<String> placeCompoundOrder(
             @RequestParam String customerEmail,
@@ -80,7 +73,7 @@ public class OrderController {
             }
 
             // Check if the friend's location matches the main customer's location
-            if (!friendCustomer.getLocation().equals(mainCustomer.getLocation())) {
+             if (!friendCustomer.getLocation().equals(mainCustomer.getLocation())) {
                 results.add("Friend " + friendEmail + " has a different location than the customer");
                 allFriendsAvailable=false;
                 break;
@@ -121,6 +114,7 @@ public class OrderController {
             finalProducts.addAll(customerProductNames);
 
 
+
             String compoundOrderResult = orderService.placeOrder(compoundOrder, finalProducts);
             results.add("Compound Order: " + compoundOrderResult);
 
@@ -129,7 +123,6 @@ public class OrderController {
         }
         return results;
     }
-
     @GetMapping("/getorder/{email}")
     public List<String> getOrdersForCustomer(@PathVariable String email) {
         Customer customer = customerService.getCustomerByEmail(email);
@@ -140,19 +133,13 @@ public class OrderController {
         List<String> orders = new ArrayList<>();
         List<SimpleOrder> simpleOrders = customer.getSimpleOrders();
         for (SimpleOrder simpleOrder : simpleOrders) {
-            String orderDetails = simpleOrder.getOrderDetails() + ", Order Status: " + simpleOrder.getStatus();
-            orders.add(orderDetails);
+            orders.add( simpleOrder.getOrderDetails());
         }
-
         List<CompoundOrder> compoundOrders = customer.getCompoundOrders();
         for (CompoundOrder compoundOrder : compoundOrders) {
-            String orderDetails = "Compound Order: " + compoundOrder.getOrderDetails() +
-                    ", Order Status: " + compoundOrder.getStatus();
-            orders.add(orderDetails);
+            orders.add("Compound Order: " + compoundOrder.getOrderDetails());
         }
 
         return orders;
     }
-
-
 }
